@@ -13,6 +13,7 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
   isSynced?: boolean;
+  defaultTaxRate?: number;
 }
 
 export interface CreateProductPayload {
