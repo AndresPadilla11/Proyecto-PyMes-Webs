@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc",
     "start": "node dist/server.js",
     "start:online": "cross-env DB_MODE=online DATABASE_URL=$DATABASE_URL_PG tsx watch src/server.ts",
     "start:offline": "cross-env DB_MODE=offline DATABASE_URL=$DATABASE_URL_SQLITE tsx watch src/server.ts",
