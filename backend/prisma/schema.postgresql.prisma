@@ -1,0 +1,274 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+// NOTA: Este schema debe usarse como schema principal (schema.prisma) para Prisma
+// Copia este archivo a schema.prisma cuando necesites usar PostgreSQL
+
+// Datasource para PostgreSQL (modo online/remoto)
+// Para uso con Supabase o servidor PostgreSQL remoto
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_PG")
+}
+
+enum DocumentType {
+  CC
+  NIT
+  PASSPORT
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT
+  TRANSFER
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  CASHIER
+}
+
+model Tenant {
+  id           String           @id @default(cuid())
+  name         String
+  slug         String           @unique
+  email        String?
+  phone        String?
+  address      String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  isSynced     Boolean          @default(true)
+  users        User[]
+  settings     CompanySettings?
+  clients      Client[]
+  products     Product[]
+  invoices     Invoice[]
+  transactions Transaction[]
+  cashRegisters CashRegister[]
+  shiftCloseouts ShiftCloseout[]
+
+  @@index([isSynced])
+}
+
+model User {
+  id        String    @id @default(cuid())
+  tenantId  String
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  fullName  String
+  email     String    @unique
+  password  String
+  role      UserRole  @default(CASHIER)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  isSynced  Boolean   @default(true)
+  Invoice   Invoice[]
+  shiftCloseouts ShiftCloseout[]
+
+  @@index([tenantId])
+  @@index([isSynced])
+}
+
+model CompanySettings {
+  id                      String   @id @default(cuid())
+  tenantId                String   @unique
+  tenant                  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  enableTax               Boolean  @default(true)
+  enableInventory         Boolean  @default(false)
+  enableCredit            Boolean  @default(true)
+  enableElectronicBilling Boolean  @default(false)
+  currency                String   @default("COP")
+  updatedAt               DateTime @updatedAt
+  isSynced                Boolean  @default(true)
+
+  @@index([isSynced])
+}
+
+model Client {
+  id             String        @id @default(cuid())
+  tenantId       String?
+  tenant         Tenant?       @relation(fields: [tenantId], references: [id])
+  businessName   String
+  documentType   DocumentType?
+  identification String?
+  nit            String?
+  dv             String?
+  email          String?
+  phone          String?
+  address        String?
+  hasCredit      Boolean       @default(false)
+  creditLimit    Decimal       @default(0)
+  currentDebt    Decimal       @default(0)
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  isSynced       Boolean       @default(true)
+  invoices       Invoice[]
+
+  @@unique([tenantId, documentType, identification], map: "client_identification_unique")
+  @@index([tenantId])
+  @@index([nit])
+  @@index([isSynced])
+}
+
+model Product {
+  id             String        @id @default(cuid())
+  tenantId       String
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name           String
+  sku            String?       @unique
+  description    String?
+  price          Decimal
+  cost           Decimal
+  stock          Int           @default(0)
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  isSynced       Boolean       @default(true)
+  invoiceItems   InvoiceItem[]
+
+  @@index([tenantId])
+  @@index([isSynced])
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  tenantId      String
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientId      String?
+  client        Client?       @relation(fields: [clientId], references: [id])
+  number        String
+  status        InvoiceStatus @default(DRAFT)
+  issueDate     DateTime      @default(now())
+  dueDate       DateTime?
+  paymentMethod PaymentMethod @default(CASH)
+  currency      String        @default("COP")
+  subtotal      Decimal
+  taxTotal      Decimal
+  total         Decimal
+  totalPaid     Decimal       @default(0)
+  isCreditSale  Boolean       @default(false)
+  notes         String?
+  createdById   String?
+  createdBy     User?         @relation(fields: [createdById], references: [id])
+  items         InvoiceItem[]
+  transactions  Transaction[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  isSynced      Boolean       @default(true)
+
+  @@unique([tenantId, number])
+  @@index([tenantId])
+  @@index([clientId])
+  @@index([isSynced])
+}
+
+model InvoiceItem {
+  id                String              @id @default(cuid())
+  invoiceId         String
+  invoice           Invoice             @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productId         String?
+  product           Product?            @relation(fields: [productId], references: [id])
+  description       String
+  quantity          Decimal
+  unitPrice         Decimal
+  taxRateApplied    Decimal
+  taxAmount         Decimal
+  totalAmount       Decimal
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  isSynced          Boolean             @default(true)
+  TransactionDetail TransactionDetail[]
+
+  @@index([invoiceId])
+  @@index([isSynced])
+}
+
+model Transaction {
+  id              String              @id @default(cuid())
+  tenantId        String
+  tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoiceId       String?
+  invoice         Invoice?            @relation(fields: [invoiceId], references: [id])
+  description     String
+  transactionDate DateTime            @default(now())
+  totalDebit      Decimal
+  totalCredit     Decimal
+  details         TransactionDetail[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  isSynced        Boolean             @default(true)
+
+  @@index([tenantId])
+  @@index([invoiceId])
+  @@index([isSynced])
+}
+
+model TransactionDetail {
+  id            String       @id @default(cuid())
+  transactionId String
+  transaction   Transaction  @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  accountCode   String
+  description   String?
+  debit         Decimal      @default(0)
+  credit        Decimal      @default(0)
+  invoiceItemId String?
+  invoiceItem   InvoiceItem? @relation(fields: [invoiceItemId], references: [id])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  isSynced      Boolean      @default(true)
+
+  @@index([transactionId])
+  @@index([accountCode])
+  @@index([isSynced])
+}
+
+model CashRegister {
+  id            Int           @id @default(autoincrement())
+  tenantId      String
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name          String
+  currentBalance Decimal       @default(0)
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  isSynced      Boolean       @default(true)
+  shiftCloseouts ShiftCloseout[]
+
+  @@index([tenantId])
+  @@index([isSynced])
+}
+
+model ShiftCloseout {
+  id               Int            @id @default(autoincrement())
+  tenantId         String
+  tenant           Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  closingTime      DateTime       @default(now())
+  cashRegisterId   Int
+  cashRegister     CashRegister   @relation(fields: [cashRegisterId], references: [id], onDelete: Cascade)
+  startingBalance  Decimal
+  finalBalance     Decimal
+  salesTotal       Decimal
+  closedByUserId   String
+  closedBy         User           @relation(fields: [closedByUserId], references: [id], onDelete: Cascade)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  isSynced         Boolean        @default(true)
+
+  @@index([tenantId])
+  @@index([cashRegisterId])
+  @@index([closedByUserId])
+  @@index([closingTime])
+  @@index([isSynced])
+}
+

@@ -1,0 +1,48 @@
+{
+  "name": "pymes-contables-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "start:online": "cross-env DB_MODE=online DATABASE_URL=$DATABASE_URL_PG tsx watch src/server.ts",
+    "start:offline": "cross-env DB_MODE=offline DATABASE_URL=$DATABASE_URL_SQLITE tsx watch src/server.ts",
+    "start:prod:online": "cross-env NODE_ENV=production DB_MODE=online DATABASE_URL=$DATABASE_URL_PG node dist/server.js",
+    "start:prod:offline": "cross-env NODE_ENV=production DB_MODE=offline DATABASE_URL=$DATABASE_URL_SQLITE node dist/server.js",
+    "prisma:generate": "prisma generate --schema=./prisma/schema.postgresql.prisma",
+    "prisma:generate:sqlite": "prisma generate --schema=./prisma/schema.sqlite.prisma",
+    "prisma:generate:all": "npm run prisma:generate && npm run prisma:generate:sqlite",
+    "prisma:migrate": "prisma migrate dev --schema=./prisma/schema.postgresql.prisma",
+    "prisma:migrate:sqlite": "prisma migrate dev --schema=./prisma/schema.sqlite.prisma",
+    "prisma:studio": "prisma studio --schema=./prisma/schema.postgresql.prisma",
+    "prisma:studio:sqlite": "prisma studio --schema=./prisma/schema.sqlite.prisma",
+    "db:migrate": "npx dotenv -e .env -- prisma migrate dev --schema=./prisma/schema.postgresql.prisma",
+    "make-admin": "tsx scripts/makeAdmin.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.16.1",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "google-auth-library": "^9.4.1",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.7.4",
+    "cross-env": "^7.0.3",
+    "dotenv-cli": "^7.4.2",
+    "prisma": "^5.16.1",
+    "tsx": "^4.16.2",
+    "typescript": "^5.6.3"
+  }
+}

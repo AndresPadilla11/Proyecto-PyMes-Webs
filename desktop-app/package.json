@@ -1,0 +1,67 @@
+{
+  "name": "pymes-desktop",
+  "version": "1.0.0",
+  "description": "Aplicación de escritorio PyMes - Sistema de gestión contable",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "npx electron-builder",
+    "build:win": "npx electron-builder --win",
+    "build:dir": "npx electron-builder --dir",
+    "dist": "npx cross-env CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder"
+  },
+  "keywords": [
+    "electron",
+    "pymes",
+    "contabilidad",
+    "desktop"
+  ],
+  "author": "PyMes Team",
+  "license": "MIT",
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.pymescontables.app",
+    "productName": "PyMes Contables POS",
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "sign": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PyMes Contables POS"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "assets/**/*",
+      {
+        "from": "../frontend/dist",
+        "to": ".",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "extraResources": []
+  }
+}

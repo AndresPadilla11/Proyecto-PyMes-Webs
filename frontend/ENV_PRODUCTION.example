@@ -1,0 +1,16 @@
+# Variables de entorno para producción
+# Este archivo es usado cuando se compila el frontend para producción
+# Copia este archivo a .env.production y configura las variables según tu entorno
+
+# URL base de la API del backend
+# Cambia esta URL por la URL pública de tu backend en producción
+# Ejemplos:
+# - Backend en servidor remoto: https://api.tudominio.com/api/v1
+# - Backend en IP pública: http://TU_IP_PUBLICA:8089/api/v1
+# - Backend local (solo para desarrollo): http://localhost:8089/api/v1
+VITE_API_URL=https://tudominioapi.com/api/v1
+
+# Client ID de Google OAuth (opcional)
+# Solo necesario si quieres habilitar el login con Google
+# VITE_GOOGLE_CLIENT_ID=tu-client-id-aqui.apps.googleusercontent.com
+

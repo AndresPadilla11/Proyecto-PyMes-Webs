@@ -1,0 +1,24 @@
+# Archivos/Carpetas generadas por el sistema
+.DS_Store
+
+# Archivos de dependencias y compilación
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+desktop-app/node_modules/
+dist/
+build/
+coverage/
+desktop-app/release/
+
+# Archivos de entorno y logs
+.env
+.env.local
+*.log
+
+# Base de datos local
+*.sqlite
+*.db
+
+# Carpeta PyMes si existe
+PyMes/

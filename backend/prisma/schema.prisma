@@ -1,0 +1,241 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id             String           @id @default(cuid())
+  name           String
+  slug           String           @unique
+  email          String?
+  phone          String?
+  address        String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  cashRegisters  CashRegister[]
+  clients        Client[]
+  settings       CompanySettings?
+  invoices       Invoice[]
+  products       Product[]
+  shiftCloseouts ShiftCloseout[]
+  transactions   Transaction[]
+  users          User[]
+}
+
+model User {
+  id             String          @id @default(cuid())
+  tenantId       String
+  fullName       String
+  email          String          @unique
+  password       String
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  role           UserRole        @default(CASHIER)
+  Invoice        Invoice[]
+  shiftCloseouts ShiftCloseout[]
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model CompanySettings {
+  id                      String   @id @default(cuid())
+  tenantId                String   @unique
+  enableTax               Boolean  @default(true)
+  enableInventory         Boolean  @default(false)
+  enableCredit            Boolean  @default(true)
+  enableElectronicBilling Boolean  @default(false)
+  currency                String   @default("COP")
+  updatedAt               DateTime @updatedAt
+  tenant                  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model Client {
+  id             String        @id @default(cuid())
+  tenantId       String?
+  businessName   String
+  documentType   DocumentType?
+  identification String?
+  nit            String?       @db.VarChar(20)
+  dv             String?       @db.VarChar(2)
+  email          String?
+  phone          String?
+  address        String?
+  hasCredit      Boolean       @default(false)
+  creditLimit    Decimal       @default(0) @db.Decimal(18, 2)
+  currentDebt    Decimal       @default(0) @db.Decimal(18, 2)
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  tenant         Tenant?       @relation(fields: [tenantId], references: [id])
+  invoices       Invoice[]
+
+  @@unique([tenantId, documentType, identification], map: "client_identification_unique")
+  @@index([tenantId])
+  @@index([nit])
+}
+
+model Product {
+  id           String        @id @default(cuid())
+  tenantId     String
+  name         String
+  sku          String?       @unique
+  description  String?
+  price        Decimal       @db.Decimal(18, 2)
+  cost         Decimal       @db.Decimal(18, 2)
+  stock        Int           @default(0)
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  invoiceItems InvoiceItem[]
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  tenantId      String
+  clientId      String?
+  number        String
+  status        InvoiceStatus @default(DRAFT)
+  issueDate     DateTime      @default(now())
+  dueDate       DateTime?
+  paymentMethod PaymentMethod @default(CASH)
+  currency      String        @default("COP")
+  subtotal      Decimal       @db.Decimal(18, 2)
+  taxTotal      Decimal       @db.Decimal(18, 2)
+  total         Decimal       @db.Decimal(18, 2)
+  totalPaid     Decimal       @default(0) @db.Decimal(18, 2)
+  isCreditSale  Boolean       @default(false)
+  notes         String?
+  createdById   String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  client        Client?       @relation(fields: [clientId], references: [id])
+  createdBy     User?         @relation(fields: [createdById], references: [id])
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items         InvoiceItem[]
+  transactions  Transaction[]
+
+  @@unique([tenantId, number])
+  @@index([tenantId])
+  @@index([clientId])
+}
+
+model InvoiceItem {
+  id                String              @id @default(cuid())
+  invoiceId         String
+  productId         String?
+  description       String
+  quantity          Decimal             @db.Decimal(18, 4)
+  unitPrice         Decimal             @db.Decimal(18, 2)
+  taxRateApplied    Decimal             @db.Decimal(5, 2)
+  taxAmount         Decimal             @db.Decimal(18, 2)
+  totalAmount       Decimal             @db.Decimal(18, 2)
+  createdAt         DateTime            @default(now())
+  invoice           Invoice             @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product           Product?            @relation(fields: [productId], references: [id])
+  TransactionDetail TransactionDetail[]
+
+  @@index([invoiceId])
+}
+
+model Transaction {
+  id              String              @id @default(cuid())
+  tenantId        String
+  invoiceId       String?
+  description     String
+  transactionDate DateTime            @default(now())
+  totalDebit      Decimal             @db.Decimal(18, 2)
+  totalCredit     Decimal             @db.Decimal(18, 2)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  invoice         Invoice?            @relation(fields: [invoiceId], references: [id])
+  tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  details         TransactionDetail[]
+
+  @@index([tenantId])
+  @@index([invoiceId])
+}
+
+model TransactionDetail {
+  id            String       @id @default(cuid())
+  transactionId String
+  accountCode   String
+  description   String?
+  debit         Decimal      @default(0) @db.Decimal(18, 2)
+  credit        Decimal      @default(0) @db.Decimal(18, 2)
+  invoiceItemId String?
+  invoiceItem   InvoiceItem? @relation(fields: [invoiceItemId], references: [id])
+  transaction   Transaction  @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([transactionId])
+  @@index([accountCode])
+}
+
+model CashRegister {
+  id             Int             @id @default(autoincrement())
+  tenantId       String
+  name           String
+  currentBalance Decimal         @default(0) @db.Decimal(18, 2)
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shiftCloseouts ShiftCloseout[]
+
+  @@index([tenantId])
+}
+
+model ShiftCloseout {
+  id              Int          @id @default(autoincrement())
+  tenantId        String
+  closingTime     DateTime     @default(now())
+  cashRegisterId  Int
+  startingBalance Decimal      @db.Decimal(18, 2)
+  finalBalance    Decimal      @db.Decimal(18, 2)
+  salesTotal      Decimal      @db.Decimal(18, 2)
+  closedByUserId  String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  cashRegister    CashRegister @relation(fields: [cashRegisterId], references: [id], onDelete: Cascade)
+  closedBy        User         @relation(fields: [closedByUserId], references: [id], onDelete: Cascade)
+  tenant          Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([cashRegisterId])
+  @@index([closedByUserId])
+  @@index([closingTime])
+}
+
+enum DocumentType {
+  CC
+  NIT
+  PASSPORT
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT
+  TRANSFER
+}
+
+enum UserRole {
+  ADMIN
+  CASHIER
+  MANAGER
+}

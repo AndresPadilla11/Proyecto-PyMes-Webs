@@ -1,0 +1,25 @@
+# Backend - Desarrollo (PostgreSQL)
+# Configuración para modo ONLINE
+# Copia este archivo como .env.development y ajusta los valores
+
+# Base de Datos PostgreSQL (Modo Online)
+DATABASE_URL_PG="postgresql://usuario:contraseña@localhost:5432/pymes_contables?schema=public"
+
+# Modo de Base de Datos
+DB_MODE=online
+
+# Puerto del Servidor
+PORT=8089
+
+# Host (0.0.0.0 permite acceso desde la red local)
+HOST=0.0.0.0
+
+# CORS - Orígenes permitidos (separados por comas)
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000,file://
+
+# JWT Secret (generar uno nuevo para producción)
+JWT_SECRET=tu_jwt_secret_super_seguro_aqui_cambiar_en_produccion
+
+# Entorno
+NODE_ENV=development
+
