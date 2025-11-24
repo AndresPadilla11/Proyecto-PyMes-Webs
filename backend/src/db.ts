@@ -62,9 +62,13 @@ const validatedDatabaseUrl = validateDatabaseUrl();
 if (isProduction) {
     const urlWithoutPassword = validatedDatabaseUrl.replace(/:([^:@]+)@/, ':****@');
     const isInternal = validatedDatabaseUrl.includes('.internal');
+    const isSupabase = validatedDatabaseUrl.includes('.supabase.co');
     console.log(`📊 [Prisma] DATABASE_URL configurada:`);
     console.log(`   🔗 Host: ${urlWithoutPassword.split('@')[1]?.split('/')[0] || 'N/A'}`);
-    console.log(`   📍 Tipo: ${isInternal ? 'Internal (Render)' : 'External'}`);
+    console.log(`   📍 Tipo: ${isInternal ? 'Internal (Render)' : isSupabase ? 'Supabase' : 'External'}`);
+    if (isSupabase) {
+        console.log(`   🔒 SSL: Requerido (sslmode=require)`);
+    }
     console.log(`   ✅ Formato: Correcto`);
 }
 
