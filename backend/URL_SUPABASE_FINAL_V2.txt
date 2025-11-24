@@ -1,0 +1,57 @@
+✅ URL CORRECTA PARA RENDER - DATABASE_URL
+
+Copia y pega esta URL completa en Render (variable de entorno DATABASE_URL):
+
+postgresql://postgres:PADILLa2122%2A%2A@db.gmocqnaslfqyomaoohpc.supabase.co:5432/postgres?sslmode=require
+
+===========================================================================
+INFORMACIÓN:
+===========================================================================
+
+- Contraseña original: PADILLa2122**
+- Asteriscos codificados: %2A%2A (cada * = %2A)
+- Host: db.gmocqnaslfqyomaoohpc.supabase.co
+- Puerto: 5432
+- Base de datos: postgres
+- SSL: Requerido (sslmode=require)
+
+===========================================================================
+PASOS PARA CONFIGURAR EN RENDER:
+===========================================================================
+
+1. Ve a tu servicio de backend en Render
+2. Haz clic en "Environment" (en el menú lateral)
+3. Busca la variable DATABASE_URL
+4. Haz clic para editarla
+5. Reemplaza todo el valor con la URL de arriba (sin comillas)
+6. Haz clic en "Save Changes"
+7. Render hará un redeploy automático
+
+===========================================================================
+VERIFICACIÓN DESPUÉS DEL DESPLIEGUE:
+===========================================================================
+
+Revisa los logs en Render. Deberías ver:
+
+📊 [Prisma] DATABASE_URL configurada:
+   🔗 Host: db.gmocqnaslfqyomaoohpc.supabase.co:5432
+   📍 Tipo: Supabase
+   🔒 SSL: Requerido (sslmode=require)
+   ✅ Formato: Correcto
+🔄 [Prisma] Intentando conectar a PostgreSQL...
+✅ [Prisma] Conectado a PostgreSQL exitosamente
+
+===========================================================================
+NOTAS:
+===========================================================================
+
+✅ La URL está correctamente codificada
+✅ Los asteriscos están codificados como %2A%2A
+✅ El SSL está configurado (sslmode=require)
+✅ La URL tiene el formato correcto
+
+Si ves un error después de configurar, revisa:
+- Que la contraseña en Supabase sea realmente PADILLa2122**
+- Que el host sea correcto en Supabase
+- Que no haya restricciones de IP en Supabase
+
