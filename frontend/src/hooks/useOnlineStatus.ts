@@ -75,7 +75,7 @@ export function useOnlineStatus() {
     try {
       // Intentar hacer una petición a un servicio conocido
       // Usamos un archivo pequeño y rápido (favicon de Google)
-      const _response = await fetch('https://www.google.com/favicon.ico', {
+      void await fetch('https://www.google.com/favicon.ico', {
         method: 'HEAD',
         mode: 'no-cors',
         cache: 'no-cache'
