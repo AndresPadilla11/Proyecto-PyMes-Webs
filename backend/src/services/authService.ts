@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { type Secret } from 'jsonwebtoken';
 import prisma from '../db';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'tu-secret-key-super-segura-cambiar-en-produccion';
+const JWT_SECRET: Secret = process.env.JWT_SECRET || 'tu-secret-key-super-segura-cambiar-en-produccion';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 export interface RegisterData {
@@ -112,7 +112,7 @@ export const register = async (data: RegisterData): Promise<AuthResponse> => {
   // Generar JWT incluyendo el role
   const token = jwt.sign(
     { userId: user.id, tenantId: user.tenantId, role: user.role },
-    JWT_SECRET,
+    JWT_SECRET as string,
     { expiresIn: JWT_EXPIRES_IN }
   );
 
