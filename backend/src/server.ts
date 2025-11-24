@@ -96,11 +96,36 @@ async function bootstrap(): Promise<void> {
 
         // Intentar conectar a la base de datos
         console.log('🔄 [Prisma] Intentando conectar a PostgreSQL...');
-        await prisma.$connect();
-        
-        // Verificar la conexión con una query simple
-        await prisma.$queryRaw`SELECT 1 as connected`;
-        console.log('✅ [Prisma] Conectado a PostgreSQL exitosamente');
+        try {
+            await prisma.$connect();
+            
+            // Verificar la conexión con una query simple
+            await prisma.$queryRaw`SELECT 1 as connected`;
+            console.log('✅ [Prisma] Conectado a PostgreSQL exitosamente');
+        } catch (connectError) {
+            // Manejo específico de errores de conexión
+            if (connectError instanceof Error) {
+                const errorCode = (connectError as { code?: string; errorCode?: string }).errorCode || 
+                                 (connectError as { code?: string }).code;
+                
+                if (errorCode === 'P1001') {
+                    console.error('❌ [Prisma] Error P1001: No se puede alcanzar el servidor de base de datos');
+                    console.error('💡 Posibles causas:');
+                    console.error('   1. La contraseña tiene caracteres especiales que necesitan codificación URL');
+                    console.error('   2. Supabase está bloqueando conexiones (verifica IP allowlist)');
+                    console.error('   3. El host o puerto son incorrectos');
+                    console.error('   4. Problemas de red entre Render y Supabase');
+                    console.error('');
+                    console.error('🔧 Soluciones:');
+                    console.error('   1. Si tu contraseña tiene *, @, #, etc., codifícalos en la URL:');
+                    console.error('      * = %2A, @ = %40, # = %23, % = %25');
+                    console.error('   2. En Supabase → Settings → Database → Connection pooling');
+                    console.error('      Verifica que "Connection string" esté en modo "Direct connection"');
+                    console.error('   3. Verifica que la URL tenga sslmode=require al final');
+                }
+            }
+            throw connectError;
+        }
 
         const HOST = process.env.HOST || '0.0.0.0';
 

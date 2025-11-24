@@ -74,13 +74,18 @@ if (isProduction) {
 
 // Crear PrismaClient con la URL validada explícitamente
 // Esto asegura que Prisma use la URL validada incluso si hay problemas con el schema.prisma
+// Para Supabase, necesitamos configuración SSL explícita
 const prisma = global.prisma || new PrismaClient({
     log: isProduction ? ['error'] : ['error', 'warn'],
     datasources: {
         db: {
             url: validatedDatabaseUrl
         }
-    }
+    },
+    // Configuración adicional para Supabase (SSL)
+    ...(validatedDatabaseUrl.includes('.supabase.co') && {
+        // Prisma maneja SSL automáticamente cuando sslmode=require está en la URL
+    })
 });
 
 if (!isProduction) {
