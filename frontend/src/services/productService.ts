@@ -1,20 +1,8 @@
 import apiClient from '../api/axios';
+import type { Product } from '../types';
 
-export interface Product {
-  id: string;
-  tenantId: string;
-  name: string;
-  sku?: string | null;
-  description?: string | null;
-  price: number | string;
-  cost: number | string;
-  stock: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  isSynced?: boolean;
-  defaultTaxRate?: number;
-}
+// Re-exportar Product para compatibilidad con imports existentes
+export type { Product };
 
 export interface CreateProductPayload {
   name: string;
