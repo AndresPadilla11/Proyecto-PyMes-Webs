@@ -13,8 +13,12 @@ import invoiceRoutes from './routes/invoiceRoutes';
 import productRoutes from './routes/productRoutes';
 import reportRoutes from './routes/reportRoutes';
 
-const envPath = path.resolve(process.cwd(), '.env');
-loadEnv({ path: envPath });
+// Solo cargar .env en desarrollo (en producción, Render proporciona las variables de entorno)
+const isProduction = process.env.NODE_ENV === 'production';
+if (!isProduction) {
+    const envPath = path.resolve(process.cwd(), '.env');
+    loadEnv({ path: envPath });
+}
 
 const PORT = Number(process.env.PORT) || 8089;
 

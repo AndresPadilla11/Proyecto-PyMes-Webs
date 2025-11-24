@@ -61,15 +61,36 @@ export class DatabaseManager {
             if (process.env.NODE_ENV !== 'production' && global.prismaPG) {
                 this.pgClient = global.prismaPG;
             } else {
+                // En producción, priorizar DATABASE_URL (usado por Render/Supabase)
+                // En desarrollo, permitir DATABASE_URL_PG como alternativa
+                const isProduction = process.env.NODE_ENV === 'production';
+                const databaseUrl = isProduction
+                    ? process.env.DATABASE_URL
+                    : (process.env.DATABASE_URL_PG || process.env.DATABASE_URL);
+
+                if (!databaseUrl) {
+                    const errorMessage = isProduction
+                        ? '❌ [DatabaseManager] DATABASE_URL no está configurado. Asegúrate de establecer esta variable de entorno en Render.'
+                        : '❌ [DatabaseManager] DATABASE_URL o DATABASE_URL_PG no está configurado. Crea un archivo .env con una de estas variables.';
+                    console.error(errorMessage);
+                    throw new Error('DATABASE_URL environment variable is required');
+                }
+
+                // Validar que no use localhost en producción
+                if (isProduction && databaseUrl.includes('localhost')) {
+                    console.error('❌ [DatabaseManager] DATABASE_URL contiene localhost en producción. Esto no funcionará en Render.');
+                    throw new Error('DATABASE_URL cannot use localhost in production');
+                }
+
                 this.pgClient = new PrismaClient({
                     log: this.mode === 'online' ? ['error', 'warn'] : [],
                     datasources: {
                         db: {
-                            url: process.env.DATABASE_URL_PG || process.env.DATABASE_URL
+                            url: databaseUrl
                         }
                     }
                 });
-                if (process.env.NODE_ENV !== 'production') {
+                if (!isProduction) {
                     global.prismaPG = this.pgClient;
                 }
             }
