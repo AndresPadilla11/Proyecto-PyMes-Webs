@@ -2,9 +2,10 @@ import axios from 'axios';
 import { getToken } from '../services/authService';
 
 // URL base de la API configurable por variable de entorno
-// Para despliegue web: usar VITE_API_URL con la URL de Render/Supabase
+// IMPORTANTE: La URL debe incluir el prefijo completo /api/v1
 // En desarrollo: http://localhost:8089/api/v1
-// En producción (Vercel/Render): https://proyecto-pymes-webs.onrender.com/api/v1
+// En producción (Vercel): https://proyecto-pymes-webs.onrender.com/api/v1
+// NOTA: Las rutas en las llamadas NO deben incluir /api, solo la ruta relativa (ej: /auth/login)
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8089/api/v1';
 
 // Log en desarrollo para verificar la URL
