@@ -112,7 +112,7 @@ export const register = async (data: RegisterData): Promise<AuthResponse> => {
   // Generar JWT incluyendo el role
   const token = jwt.sign(
     { userId: user.id, tenantId: user.tenantId, role: user.role },
-    JWT_SECRET as string,
+    JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
   );
 
