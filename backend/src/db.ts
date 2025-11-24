@@ -58,6 +58,16 @@ function validateDatabaseUrl(): string {
 // Validar DATABASE_URL antes de crear PrismaClient
 const validatedDatabaseUrl = validateDatabaseUrl();
 
+// Log de información (sin exponer la contraseña)
+if (isProduction) {
+    const urlWithoutPassword = validatedDatabaseUrl.replace(/:([^:@]+)@/, ':****@');
+    const isInternal = validatedDatabaseUrl.includes('.internal');
+    console.log(`📊 [Prisma] DATABASE_URL configurada:`);
+    console.log(`   🔗 Host: ${urlWithoutPassword.split('@')[1]?.split('/')[0] || 'N/A'}`);
+    console.log(`   📍 Tipo: ${isInternal ? 'Internal (Render)' : 'External'}`);
+    console.log(`   ✅ Formato: Correcto`);
+}
+
 // Crear PrismaClient con la URL validada explícitamente
 // Esto asegura que Prisma use la URL validada incluso si hay problemas con el schema.prisma
 const prisma = global.prisma || new PrismaClient({

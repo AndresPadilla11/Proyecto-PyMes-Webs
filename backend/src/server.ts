@@ -94,8 +94,13 @@ async function bootstrap(): Promise<void> {
             }
         });
 
+        // Intentar conectar a la base de datos
+        console.log('🔄 [Prisma] Intentando conectar a PostgreSQL...');
         await prisma.$connect();
-        console.log('✅ [Prisma] Conectado a PostgreSQL');
+        
+        // Verificar la conexión con una query simple
+        await prisma.$queryRaw`SELECT 1 as connected`;
+        console.log('✅ [Prisma] Conectado a PostgreSQL exitosamente');
 
         const HOST = process.env.HOST || '0.0.0.0';
 
