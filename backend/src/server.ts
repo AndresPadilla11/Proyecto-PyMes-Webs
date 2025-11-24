@@ -5,7 +5,6 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 
-import prisma from './db';
 import authRoutes from './routes/authRoutes';
 import clientRoutes from './routes/clientRoutes';
 import healthRoutes from './routes/health';
@@ -19,6 +18,29 @@ if (!isProduction) {
     const envPath = path.resolve(process.cwd(), '.env');
     loadEnv({ path: envPath });
 }
+
+// Validar DATABASE_URL ANTES de importar Prisma (que se ejecuta inmediatamente)
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl || databaseUrl.trim() === '') {
+    if (isProduction) {
+        console.error('❌ [Server] DATABASE_URL no está configurado en Render.');
+        console.error('💡 Pasos para solucionarlo:');
+        console.error('   1. Ve a tu servicio en Render → Settings → Environment');
+        console.error('   2. Haz clic en "Add Environment Variable"');
+        console.error('   3. Nombre: DATABASE_URL');
+        console.error('   4. Si conectaste una BD PostgreSQL en Render, DATABASE_URL se establece automáticamente');
+        console.error('   5. Si usas Supabase, copia la connection string completa (con sslmode=require)');
+        console.error('   6. Formato: postgresql://usuario:contraseña@host:puerto/nombre_bd?schema=public');
+    } else {
+        console.error('❌ [Server] DATABASE_URL no está configurado.');
+        console.error('💡 Crea un archivo .env en backend/ con: DATABASE_URL="postgresql://..."');
+    }
+    process.exit(1);
+}
+
+// Importar Prisma DESPUÉS de validar DATABASE_URL
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const prisma = require('./db').default;
 
 const PORT = Number(process.env.PORT) || 8089;
 

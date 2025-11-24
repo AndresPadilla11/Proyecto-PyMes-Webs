@@ -55,20 +55,38 @@ En Render, configura las siguientes variables de entorno en el panel de tu servi
 
 ## 🔧 Configuración en Render
 
-### Paso 1: Conectar Base de Datos
+### Paso 1: Conectar Base de Datos PostgreSQL
 
-1. En Render, ve a tu servicio de backend
-2. En la sección **"Environment"**, busca **"Add Environment Variable"**
-3. Si conectaste una base de datos PostgreSQL en Render, la variable `DATABASE_URL` se establece automáticamente
-4. Si usas Supabase, copia la connection string y créala manualmente:
+**Opción A: Usar PostgreSQL de Render (Recomendado)**
 
-```
-DATABASE_URL=postgresql://postgres:[PASSWORD]@[HOST].supabase.co:5432/postgres?sslmode=require
-```
+1. En Render, ve a tu dashboard
+2. Haz clic en **"New +"** → **"PostgreSQL"**
+3. Completa la configuración:
+   - **Name**: Nombre de tu base de datos (ej: `pymes-db`)
+   - **Database**: Nombre de la base (ej: `pymes_db`)
+   - **User**: Usuario (se genera automáticamente)
+   - **Region**: Elige la región más cercana
+   - **PostgreSQL Version**: 14 o superior
+4. Haz clic en **"Create Database"**
+5. Una vez creada, ve a tu servicio de backend
+6. En la sección **"Environment"**, verás que `DATABASE_URL` se estableció automáticamente
+7. Verifica que el valor comience con `postgresql://` (no debe estar vacío)
+
+**Opción B: Usar Supabase**
+
+1. En tu proyecto de Supabase, ve a **"Settings"** → **"Database"**
+2. En **"Connection string"**, selecciona **"URI"** y copia la connection string
+3. Asegúrate de incluir `?sslmode=require` al final
+4. En Render, ve a tu servicio de backend → **"Environment"**
+5. Haz clic en **"Add Environment Variable"**
+6. Nombre: `DATABASE_URL`
+7. Valor: Pega la connection string completa (debe comenzar con `postgresql://`)
 
 **⚠️ IMPORTANTE:**
 - NO uses `localhost` en producción - no funcionará en Render
-- Asegúrate de que la URL de Supabase incluya `?sslmode=require` al final
+- La URL debe comenzar con `postgresql://` o `postgres://`
+- Si usas Supabase, incluye `?sslmode=require` al final
+- Si `DATABASE_URL` está vacía o no existe, el backend fallará con un error claro
 
 ### Paso 2: Configurar Variables de Entorno
 
