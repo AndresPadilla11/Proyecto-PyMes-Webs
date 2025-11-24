@@ -48,8 +48,33 @@ async function bootstrap(): Promise<void> {
     try {
         const app = express();
 
+        // Configuración de CORS
+        // Permite conexiones desde Vercel, localhost y otros orígenes
+        const allowedOrigins = [
+            'https://proyecto-pymes-webs.vercel.app', // Frontend en Vercel
+            'http://localhost:5173', // Vite dev server
+            'http://localhost:3000', // React dev server alternativo
+            'http://localhost:8080', // Puerto alternativo
+            process.env.FRONTEND_URL // Variable de entorno para custom URL
+        ].filter(Boolean) as string[];
+
         app.use(cors({
-            origin: '*',
+            origin: (origin, callback) => {
+                // Permitir requests sin origin (mobile apps, Postman, etc.)
+                if (!origin) {
+                    return callback(null, true);
+                }
+                // Permitir si está en la lista de orígenes permitidos
+                if (allowedOrigins.includes(origin) || origin.includes('.vercel.app')) {
+                    return callback(null, true);
+                }
+                // En producción, ser más estricto
+                if (isProduction) {
+                    return callback(new Error('Not allowed by CORS'));
+                }
+                // En desarrollo, permitir todo
+                return callback(null, true);
+            },
             credentials: false,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
