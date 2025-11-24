@@ -1,9 +1,10 @@
 import bcrypt from 'bcryptjs';
-import jwt, { type Secret } from 'jsonwebtoken';
+import jwt, { type Secret, type SignOptions } from 'jsonwebtoken';
+import type { StringValue } from 'ms';
 import prisma from '../db';
 
 const JWT_SECRET: Secret = process.env.JWT_SECRET || 'tu-secret-key-super-segura-cambiar-en-produccion';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const JWT_EXPIRES_IN: StringValue = (process.env.JWT_EXPIRES_IN || '7d') as StringValue;
 
 export interface RegisterData {
   fullName: string;
@@ -110,10 +111,11 @@ export const register = async (data: RegisterData): Promise<AuthResponse> => {
   });
 
   // Generar JWT incluyendo el role
+  const options: SignOptions = { expiresIn: JWT_EXPIRES_IN };
   const token = jwt.sign(
     { userId: user.id, tenantId: user.tenantId, role: user.role },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    options
   );
 
   return {
@@ -162,10 +164,11 @@ export const login = async (data: LoginData): Promise<AuthResponse> => {
   }
 
   // Generar JWT incluyendo el role
+  const options: SignOptions = { expiresIn: JWT_EXPIRES_IN };
   const token = jwt.sign(
     { userId: user.id, tenantId: user.tenantId, role: user.role },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    options
   );
 
   // Retornar datos del usuario sin la contraseña
@@ -193,10 +196,11 @@ export const verifyToken = (token: string): { userId: string; tenantId: string; 
  * Genera un nuevo token JWT para un usuario
  */
 export const generateToken = async (userId: string, tenantId: string, role: string): Promise<string> => {
+  const options: SignOptions = { expiresIn: JWT_EXPIRES_IN };
   const token = jwt.sign(
     { userId, tenantId, role },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    options
   );
   return token;
 };
@@ -351,10 +355,11 @@ export const loginWithGoogle = async (data: GoogleAuthData): Promise<AuthRespons
     }
 
     // Generar JWT incluyendo el role
+    const options: SignOptions = { expiresIn: JWT_EXPIRES_IN };
     const token = jwt.sign(
       { userId: user.id, tenantId: user.tenantId, role: user.role },
       JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      options
     );
 
     return {
